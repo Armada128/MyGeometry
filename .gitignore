@@ -1,0 +1,8 @@
+build/
+log/
+install/
+*.log
+build-*
+*-debug
+*-Debug
+**/.idea/*
