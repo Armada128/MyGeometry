@@ -14,19 +14,25 @@ foreach (header IN LISTS MYHEADERS)
 endforeach ()
 
 add_library(MyGeometry SHARED ${MYHEADERS} ${MYSOURCES} )
-target_link_libraries(MyGeometry Eigen3::Eigen)
+target_link_libraries(MyGeometry PUBLIC Eigen3::Eigen)
+#target_include_directories(MyGeometry PUBLIC )
 
 add_executable(test ${MYHEADERS} ${MYSOURCES} ${CMAKE_SOURCE_DIR}/src/main.cpp)
-target_link_libraries(test Eigen3::Eigen)
+target_link_libraries(test PUBLIC Eigen3::Eigen)
 
 message("CMAKE_INSTALL_PREFIX: " ${CMAKE_INSTALL_PREFIX})
 message("CMAKE_CURRENT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR})
+include(GNUInstallDirs)
+message("CMAKE_INSTALL_INCLUDEDIR: " ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(TARGETS MyGeometry
         EXPORT MyGeometryTargets
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include)
+        ARCHIVE DESTINATION lib)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+        TYPE INCLUDE
+        FILES_MATCHING PATTERN "*.h")
 
 install(EXPORT MyGeometryTargets
         FILE MyGeometryTargets.cmake

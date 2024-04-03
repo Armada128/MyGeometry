@@ -25,6 +25,68 @@ MyPolygon::MyPolygon(const std::vector<MyPoint> &points) {
     else m_type = TYPE::CONCAVE;
 }
 
+bool MyPolygon::operator &(const MyPoint& p) {
+    if (m_type == TYPE::SELF_INTERSECT) return false;
+    MyLine l{p, Eigen::Vector2d{0, 1}};
+    std::set<MyPoint> point_set;
+    for (const auto& edge : m_edges) {
+        if ((p % edge.Line()) == 0) return true;
+        auto p_i = edge & l;
+        if (p_i.has_value() && std::find(m_vertices.begin(), m_vertices.end(), p_i.value()) == m_vertices.end()) point_set.insert(p_i.value());
+    }
+    if (!point_set.empty()) {
+        point_set.insert(p);
+        int count = 0;
+        for (auto it = point_set.begin(); it != point_set.end(); ) {
+            if (*it != p) ++count;
+            else {
+                if (count % 2 == 0) return false;
+                else count = 0;
+            }
+            ++it;
+        }
+        return count % 2 != 0;
+    } else return false;
+}
+
+std::set<MyPoint> operator &(const MyPolygon& poly, const MyLine& l) {
+    std::set<MyPoint> res;
+    for (const auto& edge : poly.Edges()) {
+        auto p_i = edge & l;
+        if (p_i.has_value()) res.emplace(p_i.value());
+    }
+    return res;
+}
+
+std::set<MyPoint> operator &(const MyLine& l, const MyPolygon& poly) {
+    return poly & l;
+}
+
+std::set<MyPoint> operator &(const MyPolygon& poly, const MySegment& s) {
+    std::set<MyPoint> res;
+    for (const auto& edge : poly.Edges()) {
+        auto p_i = edge & s;
+        if (p_i.has_value()) res.emplace(p_i.value());
+    }
+    return res;
+}
+
+std::set<MyPoint> operator &(const MySegment& s, const MyPolygon& poly) {
+    return poly & s;
+}
+
+const std::vector<MyPoint>& MyPolygon::Vertices() const {
+    return m_vertices;
+}
+
+const std::vector<MySegment>& MyPolygon::Edges() const {
+    return m_edges;
+}
+
+MyPolygon::TYPE MyPolygon::Type() const {
+    return m_type;
+}
+
 bool MyPolygon::SelfIntersect() const {
     for (int i = 2; i < m_edges.size() - 1; ++i) if (m_edges.at(0) & m_edges.at(i)) return true;
     for (int i = 1; i < m_edges.size() - 2; ++i) for (int j = i + 2; j < m_edges.size(); ++j) if (m_edges.at(i) & m_edges.at(j)) return true;
@@ -46,34 +108,4 @@ bool MyPolygon::Convex() const {
         }
     }
     return true;
-}
-
-std::set<MyPoint> MyPolygon::Intersect(const MyLine& l) const {
-    std::set<MyPoint> res;
-    for (const auto& edge : m_edges) {
-        auto p_i = edge & l;
-        if (p_i.has_value()) res.emplace(p_i.value());
-    }
-    return res;
-}
-
-std::set<MyPoint> MyPolygon::Intersect(const MySegment& s) const {
-    std::set<MyPoint> res;
-    for (const auto& edge : m_edges) {
-        auto p_i = edge & s;
-        if (p_i.has_value()) res.emplace(p_i.value());
-    }
-    return res;
-}
-
-const std::vector<MyPoint>& MyPolygon::Vertices() const {
-    return m_vertices;
-}
-
-const std::vector<MySegment>& MyPolygon::Edges() const {
-    return m_edges;
-}
-
-MyPolygon::TYPE MyPolygon::Type() const {
-    return m_type;
 }

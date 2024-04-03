@@ -6,6 +6,12 @@
 #define MYGEOMETRY_MYPOINT_H
 
 #include "Eigen/Core"
+#include "MyAngle.h"
+
+class MySegment;
+class MyLine;
+class MyArc;
+class MyCircle;
 
 class MyPoint {
 public:
@@ -14,11 +20,24 @@ public:
     MyPoint operator -(const MyPoint& p) const;
     MyPoint operator +(const MyPoint& p) const;
     double operator *(const MyPoint& p) const;
+    friend MyPoint operator *(double scale, const MyPoint& p);
+    friend MyPoint operator *(const MyPoint& p, double scale);
+    MyPoint operator /(double scale) const;
+    MyPoint& operator +=(const MyPoint& p);
+    MyPoint& operator -=(const MyPoint& p);
+    MyPoint& operator *=(double scale);
+    MyPoint& operator /=(double scale);
     double operator ^(const MyPoint& p) const;
     bool operator ==(const MyPoint& p) const;
     bool operator !=(const MyPoint& p) const;
     bool operator <(const MyPoint& p) const;
+    double operator &(const MyPoint& p) const;
     friend std::ostream& operator <<(std::ostream& out, const MyPoint& p);
+    double Norm() const;
+    void Normalize();
+//    MyPoint Rotate(double theta) const;
+    void Transfer(MyAngle angle, double x, double y);
+    MyPoint getTransfer(MyAngle angle, double x, double y) const;
     double x() const;
     double y() const;
     void setX(double x);
@@ -34,6 +53,11 @@ public:
             return xHash ^ yHash;
         }
     };
+    bool On(const MyLine& l) const;
+    bool On(const MySegment& s) const;
+    bool On(const MyCircle& c) const;
+    bool On(const MyArc& a) const;
+
 private:
     double m_x, m_y;
 };
